@@ -1,0 +1,255 @@
+body {
+    background-color: #f1f5f9;
+}
+
+.progress-fill {
+    transition: width 0.5s ease, background-color 0.5s ease;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.tab-btn {
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.tab-btn.active {
+    border-bottom-color: #0d9488;
+    color: #ccfbf1;
+    font-weight: 600;
+}
+
+/* Safe bottom spacing for mobile */
+.pb-safe {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Dark Mode Global Overrides */
+.dark {
+    color-scheme: dark;
+}
+
+.dark body {
+    background-color: #020617;
+    color: #e2e8f0;
+}
+
+.dark .bg-white {
+    background-color: #0f172a !important;
+}
+
+.dark .bg-slate-50 {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+.dark .bg-slate-100 {
+    background-color: #334155 !important;
+    border-color: #475569 !important;
+}
+
+.dark .bg-slate-800 {
+    background-color: #020617 !important;
+    border-color: #1e293b !important;
+}
+
+.dark .border-slate-50,
+.dark .border-slate-100 {
+    border-color: #1e293b !important;
+}
+
+.dark .border-slate-200,
+.dark .border-slate-300 {
+    border-color: #334155 !important;
+}
+
+.dark .text-slate-800 {
+    color: #f8fafc !important;
+}
+
+.dark .text-slate-700 {
+    color: #e2e8f0 !important;
+}
+
+.dark .text-slate-600 {
+    color: #cbd5e1 !important;
+}
+
+.dark .text-slate-500 {
+    color: #94a3b8 !important;
+}
+
+.dark .text-slate-400 {
+    color: #64748b !important;
+}
+
+.dark input,
+.dark select {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+.dark .shadow-sm {
+    box-shadow: none !important;
+}
+
+.dark .bg-brand-50,
+.dark .bg-indigo-50,
+.dark .bg-blue-50,
+.dark .bg-amber-50,
+.dark .bg-purple-50,
+.dark .bg-rose-50 {
+    background-color: rgba(30, 41, 59, 0.4) !important;
+    border-color: #334155 !important;
+}
+
+/* Mobile Bottom Nav Styles */
+.sm\\:hidden .tab-btn {
+    border-bottom: none;
+    position: relative;
+}
+
+.sm\\:hidden .tab-btn.active {
+    color: #0d9488;
+}
+
+.dark .sm\\:hidden .tab-btn.active {
+    color: #2dd4bf;
+}
+
+/* Responsive Cards Table for Mobile */
+@media (max-width: 640px) {
+    .mob-text {
+        display: none !important;
+    }
+
+    .responsive-table table,
+    .responsive-table thead,
+    .responsive-table tbody,
+    .responsive-table th,
+    .responsive-table td,
+    .responsive-table tr {
+        display: block;
+    }
+
+    .responsive-table thead tr {
+        display: none;
+    }
+
+    .responsive-table tr {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 0.75rem 1rem;
+        background: #fff;
+    }
+
+    .dark .responsive-table tr {
+        border-color: #334155;
+        background: #1e293b;
+    }
+
+    .responsive-table td {
+        border: none;
+        position: relative;
+        padding: 0.5rem 0 0.5rem 40% !important;
+        text-align: right !important;
+        min-height: 2.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-end;
+    }
+
+    .responsive-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        top: 0.5rem;
+        width: 38%;
+        text-align: left;
+        font-weight: 600;
+        color: #64748b;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .dark .responsive-table td::before {
+        color: #94a3b8;
+    }
+
+    .responsive-table td.actions-cell {
+        flex-direction: row;
+        justify-content: flex-end;
+        gap: 1rem;
+        padding: 0.75rem 0 0.25rem 0 !important;
+        margin-top: 0.5rem;
+        border-top: 1px solid #f1f5f9;
+        width: 100%;
+    }
+
+    .dark .responsive-table td.actions-cell {
+        border-top-color: #334155;
+    }
+
+    .responsive-table td.actions-cell::before {
+        display: none;
+    }
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .mob-text {
+        display: block !important;
+    }
+}
+
+.category-chip {
+    transition: all 0.2s;
+}
+
+.category-chip {
+    transition: all 0.2s;
+}
+
+.category-chip:hover {
+    transform: translateY(-1px);
+}
