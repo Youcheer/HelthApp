@@ -1551,8 +1551,8 @@ function showCloudSyncInfo() {
                 <div class="bg-slate-50 p-2 rounded border border-slate-100">
                     <strong class="text-indigo-800 block mb-1"><i class="fa-solid fa-image mr-1"></i> 3. රූප රාමු සහ ලේඛන හැසිරවීම (Images/Docs)</strong>
                     <ul class="list-disc pl-5 text-xs space-y-1">
-                        <li><strong>Google Sheet සීමාවන්:</strong> එක කොටුවක තැන්පත් කළ හැකි ප්‍රමාණය සීමිත බැවින්, පින්තූරවල "Base64 string" එක Cloud එකට යැවීමේදී ඉවත් කරනු ලැබේ.</li>
-                        <li><strong>සුරැකීම:</strong> පින්තූර සහ PDF ලේඛන ඔබේ Browser එකේ පමණක් පවතින අතර, Cloud එකට යැවෙන්නේ විස්තර (Text) පමණි. රූප රාමු සමඟම සුරැකීමට 'JSON Backup' පහසුකම භාවිතා කරන්න.</li>
+                        <li><strong>Google Drive Sync:</strong> ඔබ එක් කරන බිල්පත් පින්තූර ස්වක්‍රීයව ඔබගේ Google Drive හි "HealthApp_Images" ෆෝල්ඩරයට Upload වී ආරක්‍ෂිතව සුරැකේ.</li>
+                        <li><strong>සම්බන්ධතාවය (Multi-Device):</strong> එමනිසා සමමුහුර්ත කළ (Synced) පසු වෙනත් ඕනෑම දුරකථනයකින් හෝ පරිගණකයකින් ලොග් වූ විටද පින්තූර එලෙසින්ම නැරඹිය හැක.</li>
                     </ul>
                 </div>
             </div>
@@ -1576,18 +1576,10 @@ async function syncToCloud() {
         const claimsData = await db.claims.toArray();
         const premiumsData = await db.premiums.toArray();
 
-        // Strip large base64 fileData from claims before sending to Google Sheets (limitations apply)
-        const strippedClaims = claimsData.map(c => {
-            const temp = { ...c };
-            delete temp.fileData; // Do not send large string arrays to prevent Google Sheet from returning error
-            delete temp.fileType;
-            return temp;
-        });
-
         const payload = {
             action: 'export',
             config: config,
-            claims: strippedClaims,
+            claims: claimsData,
             premiums: premiumsData
         };
 
