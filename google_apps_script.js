@@ -19,12 +19,41 @@ function doPost(e) {
          configSheet.appendRow(['Key', 'Value']);
          configSheet.appendRow(['config', JSON.stringify(data.config || {})]);
 
-         // Handle claims (Incremental Sync / Merge Logic)
+         // Handle claims (Incremental Sync / Merge Logic + Drive Image Sync)
          var claimsSheet = getOrCreateSheet(ss, 'Claims');
-         var claimHeaders = ['syncId', 'policyYear', 'date', 'category', 'amount', 'hospital', 'description', 'days', 'timestamp'];
+         var claimHeaders = ['syncId', 'policyYear', 'date', 'category', 'amount', 'hospital', 'description', 'days', 'timestamp', 'fileData', 'fileType'];
+
          if (claimsSheet.getLastRow() === 0) {
             claimsSheet.appendRow(claimHeaders);
          }
+
+         // Upload images to Google Drive before merging
+         var folderName = "HealthApp_Images";
+         var folder;
+         if (data.claims && data.claims.length > 0) {
+            for (var i = 0; i < data.claims.length; i++) {
+               var claim = data.claims[i];
+               if (claim.fileData && claim.fileData.indexOf('data:') === 0) {
+                  if (!folder) {
+                     var folders = DriveApp.getFoldersByName(folderName);
+                     folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+                  }
+                  // Extract base64
+                  var parts = claim.fileData.split(';');
+                  var mime = parts[0].split(':')[1];
+                  var base64 = parts[1].split(',')[1];
+                  var ext = mime.split('/')[1] || 'img';
+                  if (ext === 'jpeg') ext = 'jpg';
+                  var blob = Utilities.newBlob(Utilities.base64Decode(base64), mime, "Claim_" + claim.syncId + "." + ext);
+                  var file = folder.createFile(blob);
+                  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+                  // Replace Base64 string with Drive Link
+                  claim.fileData = file.getUrl();
+               }
+            }
+         }
+
          mergeData(claimsSheet, data.claims, claimHeaders);
 
          // Handle premiums (Incremental Sync / Merge Logic)
@@ -109,10 +138,10 @@ function doGet(e) {
 
       var claimsSheet = ss.getSheetByName('Claims');
       if (claimsSheet && claimsSheet.getLastRow() > 1) {
-         var rows = claimsSheet.getRange(2, 1, claimsSheet.getLastRow() - 1, 9).getValues();
+         var rows = claimsSheet.getRange(2, 1, claimsSheet.getLastRow() - 1, 11).getValues();
          result.claims = rows.map(function (r) {
             return {
-               syncId: r[0], policyYear: r[1], date: r[2], category: r[3], amount: r[4], hospital: r[5], description: r[6], days: r[7] === "" ? null : r[7], timestamp: r[8]
+               syncId: r[0], policyYear: r[1], date: r[2], category: r[3], amount: r[4], hospital: r[5], description: r[6], days: r[7] === "" ? null : r[7], timestamp: r[8], fileData: r[9], fileType: r[10]
             };
          });
       }

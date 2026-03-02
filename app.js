@@ -1417,7 +1417,13 @@ async function deleteRow(store, id) {
     }
 }
 function viewDocument(data, type) {
-    document.getElementById('modalContent').innerHTML = type.startsWith('image') ? `<img src="${data}" class="max-h-full max-w-full rounded">` : `<iframe src="${data}" class="w-full h-[60vh]"></iframe>`;
+    let htmlContent = '';
+    if (data.startsWith('http')) {
+        htmlContent = `<iframe src="${data}" class="w-full h-[60vh] rounded"></iframe>`;
+    } else {
+        htmlContent = type.startsWith('image') ? `<img src="${data}" class="max-h-full max-w-full rounded">` : `<iframe src="${data}" class="w-full h-[60vh]"></iframe>`;
+    }
+    document.getElementById('modalContent').innerHTML = htmlContent;
     document.getElementById('documentModal').classList.remove('hidden');
 }
 function closeModal() { document.getElementById('documentModal').classList.add('hidden'); }
@@ -1691,17 +1697,10 @@ async function autoSyncToCloud() {
         const claimsData = await db.claims.toArray();
         const premiumsData = await db.premiums.toArray();
 
-        const strippedClaims = claimsData.map(c => {
-            const temp = { ...c };
-            delete temp.fileData;
-            delete temp.fileType;
-            return temp;
-        });
-
         const payload = {
             action: 'export',
             config: config,
-            claims: strippedClaims,
+            claims: claimsData,
             premiums: premiumsData
         };
 
@@ -2128,6 +2127,7 @@ function logoutSystem() {
     }).then((result) => {
         if (result.isConfirmed) {
             typeof autoSyncToCloud === 'function' && autoSyncToCloud();
+            sessionStorage.removeItem('healthAppAuth');
             window.location.reload();
         }
     });
@@ -2235,6 +2235,7 @@ function pressPinBackspace() {
 function verifyPin() {
     if (enteredPin === config.appPin) {
         // Success
+        sessionStorage.setItem('healthAppAuth', 'true');
         const loginScreen = document.getElementById('loginScreen');
         loginScreen.style.opacity = '0';
         setTimeout(() => {
@@ -2261,7 +2262,7 @@ function verifyPin() {
 }
 
 async function authenticateUser() {
-    if (config.appPin && config.appPin.length === 4) {
+    if (config.appPin && config.appPin.length === 4 && sessionStorage.getItem('healthAppAuth') !== 'true') {
         const loginScreen = document.getElementById('loginScreen');
         const welcomeText = document.getElementById('loginWelcomeText');
 
@@ -2309,6 +2310,7 @@ function resetInactivityTimeout() {
     if (config && config.appPin && config.appPin.length === 4) {
         inactivityTimeout = setTimeout(() => {
             // After 10 mins (600,000 ms) of no interaction, reload to lock screen
+            sessionStorage.removeItem('healthAppAuth');
             window.location.reload();
         }, 10 * 60 * 1000); // 10 minutes
     }
