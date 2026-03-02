@@ -1721,10 +1721,86 @@ async function autoSyncToCloud() {
     }
 }
 
+async function autoBackgroundPull() {
+    const url = localStorage.getItem('googleWebAppUrl');
+    if (!url) return;
+    try {
+        const response = await fetch(url + "?t=" + Date.now(), { method: 'GET', redirect: "follow" });
+        const resData = await response.json();
+        if (resData.status !== 'success' || !resData.data) return;
+
+        const parsedData = resData.data;
+        const formatSheetDate = (dStr) => {
+            if (!dStr) return dStr;
+            if (typeof dStr === 'string' && dStr.includes('T')) {
+                const d = new Date(dStr);
+                if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            }
+            return dStr;
+        };
+
+        let hasUpdates = false;
+
+        if (parsedData.claims && parsedData.claims.length > 0) {
+            for (let c of parsedData.claims) {
+                if (!c.syncId) continue;
+                c.date = formatSheetDate(c.date);
+                if (!c.timestamp) c.timestamp = 0;
+
+                const ex = await db.claims.where('syncId').equals(c.syncId).first();
+                if (!ex) {
+                    await db.claims.add(c);
+                    hasUpdates = true;
+                } else if ((ex.timestamp || 0) < c.timestamp) {
+                    c.id = ex.id; // Preserve Local Auto-Increment ID
+                    await db.claims.put(c);
+                    hasUpdates = true;
+                }
+            }
+        }
+
+        if (parsedData.premiums && parsedData.premiums.length > 0) {
+            for (let p of parsedData.premiums) {
+                if (!p.syncId) continue;
+                p.dueDate = formatSheetDate(p.dueDate);
+                p.paidDate = formatSheetDate(p.paidDate);
+                if (!p.timestamp) p.timestamp = 0;
+
+                const ex = await db.premiums.where('syncId').equals(p.syncId).first();
+                if (!ex) {
+                    await db.premiums.add(p);
+                    hasUpdates = true;
+                } else if ((ex.timestamp || 0) < p.timestamp) {
+                    p.id = ex.id;
+                    await db.premiums.put(p);
+                    hasUpdates = true;
+                }
+            }
+        }
+
+        if (hasUpdates) {
+            initApp();
+            if (typeof renderClaimsTable === 'function') renderClaimsTable();
+            if (typeof renderPremiumsTable === 'function') renderPremiumsTable();
+            Swal.fire({
+                toast: true,
+                position: 'bottom-end',
+                showConfirmButton: false,
+                timer: 3000,
+                icon: 'info',
+                title: 'Data automatically synced remotely'
+            });
+        }
+    } catch (err) {
+        console.error("Silent Auto Pull Error:", err);
+    }
+}
+
 // Global Online Event Listener for Auto Sync when back online
-window.addEventListener('online', () => {
+window.addEventListener('online', async () => {
     console.log("Back online, triggering auto sync to cloud in background...");
-    if (typeof autoSyncToCloud === 'function') autoSyncToCloud();
+    if (typeof autoBackgroundPull === 'function') await autoBackgroundPull();
+    if (typeof autoSyncToCloud === 'function') await autoSyncToCloud();
 });
 
 // --- PDF EXPORT FUNCTIONS ---
@@ -2196,6 +2272,9 @@ async function checkFirstTimeSync() {
             await syncFromCloud();
             return; // syncFromCloud reloads the page on success
         }
+    } else if (existingUrl) {
+        // App is already configured, silently pull updates in the background
+        if (typeof autoBackgroundPull === 'function') autoBackgroundPull();
     }
 
     // If skipped or not first time, just initialize normally
