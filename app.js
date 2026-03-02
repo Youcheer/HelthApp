@@ -31,17 +31,13 @@ document.addEventListener('blur', function (e) {
 
 // --- 1. CONFIG MULTI-CATEGORY UPDATE ----
 const DEFAULT_CONFIG = {
-    policyName: "Policyholder",
-    policyAge: 30, policyNIC: "", policyNo: "", policyTerm: 30,
-    monthlyPremium: 5000, premiumFrequency: "Monthly",
+    policyName: "",
+    policyAge: "", policyNIC: "", policyNo: "", policyTerm: 1,
+    monthlyPremium: 0, premiumFrequency: "Monthly",
     activeYear: 1, activeDate: "",
-    baseCover: 750000, criticalCover: 1000000, hospitalPerDay: 8000, hospitalRoomPct: 2.0,
+    baseCover: 0, criticalCover: 0, hospitalPerDay: 0, hospitalRoomPct: 0,
     overdueRiskDays: 26, noClaimBonusPct: 25, appPin: "",
-    innerLimits: { // NEW DYNAMIC STRUCTURE FOR INNER LIMITS %
-        'OPD': { pct: 1.0, icon: 'fa-stethoscope text-green-500' },
-        'Spectacles': { pct: 1.0, icon: 'fa-glasses text-teal-500' },
-        'Dental': { pct: 1.0, icon: 'fa-tooth text-cyan-500' }
-    }
+    innerLimits: {}
 };
 
 let config = JSON.parse(localStorage.getItem('policyConfig'));
@@ -61,7 +57,7 @@ const fallbackIcon = 'fa-tag text-slate-400';
 
 // Data Migration for older configs
 if (!config || typeof config !== 'object') {
-    config = DEFAULT_CONFIG;
+    config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
 } else {
     // Apply defaults for missing new keys
     for (let key in DEFAULT_CONFIG) if (config[key] === undefined) config[key] = DEFAULT_CONFIG[key];
@@ -1460,7 +1456,7 @@ async function resetData() {
         await db.claims.clear();
         await db.premiums.clear();
         await db.policyDocs.clear();
-        config = DEFAULT_CONFIG;
+        config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
         config.timestamp = Date.now();
         saveConfig(); initApp(); switchTab('dashboard');
         Swal.fire('Cleared', '', 'success');
